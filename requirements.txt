@@ -3,3 +3,5 @@ uvicorn[standard]
 python-multipart==0.0.9
 boto3
 python-dotenv==1.2.2
+motor
+pymupdf
