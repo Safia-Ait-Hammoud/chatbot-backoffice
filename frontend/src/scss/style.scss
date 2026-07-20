@@ -1,0 +1,172 @@
+@use "@coreui/coreui/scss/coreui" as * with ( 
+  $enable-deprecation-messages: false,
+);
+@use "@coreui/chartjs/scss/coreui-chartjs";
+@use "vendors/simplebar";
+
+body {
+  background-color: var(--cui-tertiary-bg);
+}
+
+.wrapper {
+  width: 100%;
+  padding-inline: var(--cui-sidebar-occupy-start, 0) var(--cui-sidebar-occupy-end, 0);
+  will-change: auto;
+  @include transition(padding .15s);
+}
+
+.header > .container-fluid,
+.sidebar-header {
+  min-height: calc(4rem + 1px); // stylelint-disable-line function-disallowed-list
+}
+
+.sidebar-brand-full {
+  margin-left: 3px;
+}
+
+.sidebar-header {
+  .nav-underline-border {
+    --cui-nav-underline-border-link-padding-x: 1rem;
+    --cui-nav-underline-border-gap: 0;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    min-height: calc(4rem + 1px); // stylelint-disable-line function-disallowed-list
+  }
+}
+
+.sidebar-toggler {
+  margin-inline-start: auto;
+}
+
+.sidebar-narrow,
+.sidebar-narrow-unfoldable:not(:hover) {
+  .sidebar-toggler {
+    margin-inline-end: auto;
+  }
+}
+
+.header > .container-fluid + .container-fluid {
+  min-height: 3rem;
+}
+
+.footer {
+  min-height: calc(3rem + 1px); // stylelint-disable-line function-disallowed-list
+}
+
+@include color-mode(dark) {
+  body {
+    background-color: var(--cui-dark-bg-subtle);
+  }
+
+  .footer {
+    --cui-footer-bg: var(--cui-body-bg);
+  }
+}
+
+// ===== Personnalisations Back Office =====
+
+// 1. Sidebar avec fond blanc
+.sidebar {
+  --cui-sidebar-bg: #ffffff !important;
+  --cui-sidebar-nav-link-color: #4a5568 !important;
+  --cui-sidebar-nav-link-hover-bg: #f7fafc !important;
+  --cui-sidebar-nav-link-hover-color: #2d3748 !important;
+  --cui-sidebar-nav-link-active-bg: #3182ce !important;
+  --cui-sidebar-nav-link-active-color: #ffffff !important;
+  --cui-sidebar-nav-title-color: #718096 !important;
+  border-right: 1px solid #e2e8f0 !important;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1) !important;
+  z-index: 1000 !important;
+}
+
+.sidebar .nav-icon {
+  color: #718096 !important;
+}
+
+.sidebar .nav-link {
+  color: #4a5568 !important;
+}
+
+.sidebar .nav-link:hover {
+  background-color: #f7fafc !important;
+  color: #2d3748 !important;
+}
+
+.sidebar .nav-link:hover .nav-icon {
+  color: #2d3748 !important;
+}
+
+.sidebar .nav-link.active {
+  background-color: rgba(37, 99, 235, 0.08) !important;
+  color: #2563eb !important;
+  border-left: 4px solid #2563eb !important;
+  border-radius: 0 8px 8px 0 !important;
+  padding-left: 12px !important;
+}
+
+.sidebar .nav-link.active .nav-icon {
+  color: #2563eb !important;
+}
+
+.sidebar-brand {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.sidebar-brand a {
+  color: #2d3748 !important;
+}
+
+.sidebar-header {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.sidebar-footer {
+  background-color: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+.sidebar-toggler {
+  color: #4a5568 !important;
+  
+  &:hover {
+    color: #2d3748 !important;
+    background-color: #f7fafc !important;
+  }
+}
+
+// Close button pour mobile
+.sidebar .btn-close {
+  filter: invert(1);
+}
+
+// 2. Header plus compact
+.header {
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important;
+  z-index: 999 !important;
+}
+
+.header > .container-fluid {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+// 3. Breadcrumb sans background et plus compact
+.header > .container-fluid + .container-fluid {
+  background-color: transparent !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+  min-height: 2rem !important;
+}
+
+.breadcrumb {
+  background-color: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
