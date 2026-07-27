@@ -3,3 +3,7 @@ uvicorn[standard]
 python-multipart==0.0.9
 boto3
 python-dotenv==1.2.2
+pydantic==2.13.3
+pydantic-settings==2.11.0
+openai
+qdrant-client

@@ -26,7 +26,7 @@ Le back-office permet de :
 
 1. Cloner le dépôt :
 ```bash
-   git clone https://github.com/Safia-Ait-Hammoud/chatbot-backoffice.git
+   git 
    cd chatbot-backoffice
 ```
 
