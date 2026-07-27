@@ -1,7 +1,7 @@
 from bson import ObjectId
 from bson.errors import InvalidId
 
-from core.mongodb import mongo_db
+from core.settings import mongo_db
 from models.project_model import ProjectModel
 
 collection = mongo_db["projects"]
@@ -12,6 +12,7 @@ class ProjectRepository:
     async def create(self, project: ProjectModel) -> str:
         result = await collection.insert_one(project.model_dump())
         return str(result.inserted_id)
+    
 
     async def get_by_id(self, project_id: str) -> dict | None:
         try:

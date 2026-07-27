@@ -1,11 +1,11 @@
 import asyncio
 from pathlib import Path
 from uuid import uuid4
-
+import boto3
 from botocore.exceptions import ClientError
 from fastapi import HTTPException, UploadFile
 
-from core.aws import AWS_BUCKET_NAME, get_s3_client
+from core.settings import settings
 from repositories.document_repository import DocumentRepository
 from repositories.project_repository import ProjectRepository
 
@@ -13,8 +13,14 @@ from repositories.project_repository import ProjectRepository
 class S3Service:
 
     def __init__(self):
-        self.s3_client = get_s3_client()
-        self.bucket_name = AWS_BUCKET_NAME
+        self.s3_client = boto3.client(
+            "s3",
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_REGION,
+        )
+
+        self.bucket_name = settings.AWS_BUCKET_NAME
         self.document_repository = DocumentRepository()
         self.project_repository = ProjectRepository()
 

@@ -1,20 +1,17 @@
-from fastapi import APIRouter, UploadFile, File, Form, Depends,Query
-from fastapi.responses import Response
-from services.indexing_service import IndexingService
+from fastapi import APIRouter, Depends, Form
 
+from core.dependencies import get_document_indexing_service
+from services.document_indexing_service import DocumentIndexingService
 
-router = APIRouter(prefix="/api/indexing", tags=["Indexing"])
-
-
-def get_indexing_service():
-    return IndexingService()
+router = APIRouter(
+    prefix="/api/indexing",
+    tags=["Indexing"],
+)
 
 
 @router.post("/")
-async def prepare_document(
-    documnet_id: str = Form(...),
-    service: IndexingService = Depends(get_indexing_service),
-): 
-    result = await service.prepare_document(documnet_id)
-    return result
-
+async def indexing(
+    document_id: str = Form(...),
+    service: DocumentIndexingService = Depends(get_document_indexing_service),
+    ):
+    return await service.index_document(document_id)

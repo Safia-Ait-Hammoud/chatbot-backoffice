@@ -5,3 +5,9 @@ boto3
 python-dotenv==1.2.2
 motor
 pymupdf
+pymupdf4llm
+langchain_text_splitters
+openai
+qdrant_client
+langchain-qdrant
+langchain_openai

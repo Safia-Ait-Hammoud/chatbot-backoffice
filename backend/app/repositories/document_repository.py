@@ -1,6 +1,6 @@
 from bson import ObjectId
 
-from core.mongodb import mongo_db
+from core.settings import mongo_db
 from models.document_model import DocumentModel
 
 collection = mongo_db["documents"]
@@ -12,6 +12,15 @@ class DocumentRepository:
         result = await collection.insert_one(document.model_dump())
         return str(result.inserted_id)
 
+
+    async def update(self, document_id: str , updated_doc: DocumentModel) -> bool:
+        result = await collection.update_one(
+            {"_id": ObjectId(document_id)},
+            {"$set": updated_doc.model_dump(exclude={"id"})}
+        )
+        return result.modified_count > 0 
+
+
     async def get_by_id(self, document_id: str) -> dict | None:
         document = await collection.find_one({"_id": ObjectId(document_id)})
 
@@ -20,6 +29,7 @@ class DocumentRepository:
 
         document["id"] = str(document.pop("_id"))
         return document
+
 
     async def list_by_project(self, project_id: str) -> list[dict]:
         documents = []
