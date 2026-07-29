@@ -17,7 +17,16 @@ class Settings(BaseSettings):
     openai_api_key: str
     openai_embedding_model: str = "text-embedding-3-large"
 
+    
+    mongodb_uri: str
+    mongodb_db_name: str
+
+    openai_dimensions: int = 3072
+    
+    qdrant_vector_size: int = 3072
+
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+

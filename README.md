@@ -61,7 +61,7 @@ Voir `.env.example` pour la liste complète des variables requises (identifiants
 
 ## Vérification de l'installation
 
-- MongoDB : `docker exec -it backoffice-mongodb mongosh -u <user> -p <password> --authenticationDatabase admin`
+- MongoDB : `http://localhost:8081`
 - Qdrant : ouvrir `http://localhost:6333/dashboard`
 - API FastAPI : ouvrir `http://localhost:8000/docs`
 

@@ -1,10 +1,17 @@
 import json
 from typing import Optional
+from pathlib import Path
+from uuid import uuid4
+import asyncio
 
 import boto3
 from botocore.exceptions import ClientError
 
 from app.core.config import Settings
+
+from fastapi import HTTPException, UploadFile
+
+
 
 
 class S3Client:
@@ -37,3 +44,42 @@ class S3Client:
             Body=body,
             ContentType="application/json",
         )
+
+
+
+
+    async def upload_file(self, file: UploadFile, folder: str) -> dict:
+        filename = Path(file.filename).name
+        s3_key = f"{folder}/{uuid4()}_{filename}"
+        url = f"https://{self._bucket}.s3.amazonaws.com/{s3_key}"
+
+        try:
+            await asyncio.to_thread(
+                self._client.upload_fileobj,
+                file.file,
+                self._bucket,
+                s3_key,
+                ExtraArgs={"ContentType": file.content_type or "application/octet-stream"},
+            )
+        except ClientError as exc:
+            raise RuntimeError(f"Erreur S3 (upload) : {exc}") from exc
+
+        return {"filename": filename, "s3_key": s3_key, "url": url}
+
+    async def download_file(self, s3_key: str) -> bytes:
+        try:
+            response = await asyncio.to_thread(
+                self._client.get_object, Bucket=self._bucket, Key=s3_key
+            )
+            return response["Body"].read()
+        except ClientError as exc:
+            raise RuntimeError(f"Erreur S3 (download) : {exc}") from exc
+
+    async def delete_file(self, s3_key: str) -> None:
+        try:
+            await asyncio.to_thread(
+                self._client.delete_object, Bucket=self._bucket, Key=s3_key
+            )
+        except ClientError as exc:
+            raise RuntimeError(f"Erreur S3 (delete) : {exc}") from exc
+    

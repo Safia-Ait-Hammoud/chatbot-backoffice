@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 
 from app.core.dependencies import get_faq_indexing_service
 from app.schemas.faq.indexingFaq import FAQCreatedEvent, FAQDeletedEvent, FAQUpdatedEvent
-from app.services.faq_indexing_service import FAQIndexingService
+from app.services.faq.faq_indexing_service import FAQIndexingService
 
 router = APIRouter(prefix="/faq/events", tags=["faq-indexing"])
 

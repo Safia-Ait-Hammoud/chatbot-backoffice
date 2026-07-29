@@ -3,6 +3,7 @@ from typing import Any
 from qdrant_client import QdrantClient as _QdrantClient
 from qdrant_client.http import models as qmodels
 
+
 from app.core.config import Settings
 
 
@@ -73,4 +74,43 @@ class QdrantWrapper:
             collection_name=collection,
             query=vector,
             limit=limit,
+        )
+
+
+
+
+
+    def ensure_collection_raw(self, collection_name: str) -> None:
+        """
+        Crée la collection si elle n'existe pas, SANS préfixe.
+        Le nom passé est utilisé tel quel (ex: nom du projet).
+        """
+        if not self._client.collection_exists(collection_name):
+            self._client.create_collection(
+                collection_name=collection_name,
+                vectors_config=qmodels.VectorParams(
+                    size=self.VECTOR_SIZE,
+                    distance=qmodels.Distance.COSINE,
+                ),
+            )
+
+    def upsert_points(self, collection_name: str, points: list[qmodels.PointStruct]) -> None:
+        """
+        Upsert de plusieurs points dans une collection déjà nommée
+        (pas de préfixe appliqué).
+        """
+        self.ensure_collection_raw(collection_name)
+        self._client.upsert(
+            collection_name=collection_name,
+            points=points,
+        )
+
+    def delete_by_filter(self, collection_name: str, filter_: qmodels.Filter) -> None:
+        """
+        Supprime tous les points correspondant à un filtre
+        (ex: tous les chunks d'un document_id donné).
+        """
+        self._client.delete(
+            collection_name=collection_name,
+            points_selector=filter_,
         )

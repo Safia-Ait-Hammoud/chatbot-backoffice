@@ -1,13 +1,13 @@
 from app.clients.s3_client import S3Client
 from app.schemas.faq.indexingFaq import FAQCreatedEvent, FAQDeletedEvent, FAQUpdatedEvent
-from app.services.faq_indexing_service import FAQIndexingService
+from app.services.faq.faq_indexing_service import FAQIndexingService
 from app.schemas.faq.logging import (
     FAQCreatedLogEntry,
     FAQDeletedLogEntry,
     FAQUpdatedLogEntry,
     QAPair,
 )
-from app.services.faq_log_service import FAQLogService
+from app.services.faq.faq_log_service import FAQLogService
 from app.schemas.faq.management import (
     FAQCreateRequest,
     FAQDeleteRequest,

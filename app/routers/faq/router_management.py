@@ -7,7 +7,7 @@ from app.schemas.faq.management import (
     FAQItem,
     FAQUpdateRequest,
 )
-from app.services.faq_management_service import FAQManagementService, FAQNotFoundError
+from app.services.faq.faq_management_service import FAQManagementService, FAQNotFoundError
 
 router = APIRouter(prefix="/products/{product_id}/faq", tags=["faq-management"])
 
