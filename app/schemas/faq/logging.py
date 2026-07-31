@@ -8,6 +8,8 @@ class FAQAction(str, Enum):
     created = "created"
     updated = "updated"
     deleted = "deleted"
+    file_created = "file_created"      
+    file_deleted = "file_deleted"
 
 
 class QAPair(BaseModel):
@@ -41,4 +43,25 @@ class FAQDeletedLogEntry(FAQLogEntryBase):
     answer: str
 
 
-FAQLogEntry = FAQCreatedLogEntry | FAQUpdatedLogEntry | FAQDeletedLogEntry
+class FAQFileCreatedLogEntry(FAQLogEntryBase):
+    """Création complète du fichier FAQ d'un produit (upload initial)."""
+    action: FAQAction = FAQAction.file_created
+    faq_id: str = "file"         
+    item_count: int
+
+
+class FAQFileDeletedLogEntry(FAQLogEntryBase):
+    """Suppression complète du fichier FAQ d'un produit."""
+    action: FAQAction = FAQAction.file_deleted
+    faq_id: str = "file"
+    filename: str
+    item_count: int
+
+
+FAQLogEntry = (
+    FAQCreatedLogEntry
+    | FAQUpdatedLogEntry
+    | FAQDeletedLogEntry
+    | FAQFileCreatedLogEntry
+    | FAQFileDeletedLogEntry
+)

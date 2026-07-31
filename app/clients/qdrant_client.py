@@ -114,3 +114,16 @@ class QdrantWrapper:
             collection_name=collection_name,
             points_selector=filter_,
         )
+
+
+    def insert_batch(self, product_id: str, points: list[qmodels.PointStruct]) -> None:
+        """Insertion en lot lors de la création du fichier FAQ d'un produit."""
+        collection = self._ensure_collection(product_id)
+        if points:
+            self._client.upsert(collection_name=collection, points=points)
+
+    def delete_collection(self, product_id: str) -> None:
+        """Rollback : supprime la collection si une étape suivante échoue."""
+        collection = self._collection_name(product_id)
+        if self._client.collection_exists(collection):
+            self._client.delete_collection(collection_name=collection)

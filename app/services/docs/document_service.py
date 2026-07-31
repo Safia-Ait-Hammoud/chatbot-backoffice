@@ -1,6 +1,7 @@
 from fastapi import HTTPException, UploadFile
 
 from app.clients.s3_client import S3Client
+from app.repositories.docs.chunk_repository import ChunkRepository
 from app.repositories.docs.document_repository import DocumentRepository
 from app.repositories.docs.project_repository import ProjectRepository
 from app.schemas.docs.document_model import DocumentModel
@@ -14,10 +15,12 @@ class DocumentService:
         s3_client: S3Client,
         document_repository: DocumentRepository,
         project_repository: ProjectRepository,
+        chunks_repository: ChunkRepository
     ):
         self._s3 = s3_client
         self._documents = document_repository
         self._projects = project_repository
+        self._chunks = chunks_repository
 
     async def add_file(self, file: UploadFile, project_id: str, filename: str) -> DocumentResponse:
         """Upload un nouveau fichier sur S3 et enregistre ses métadonnées en base."""
@@ -89,6 +92,7 @@ class DocumentService:
         except HTTPException:
             if file:
                 await self._s3.delete_file(new_s3_key)
+                await self._chunks.delete_by_document_id(project["id"] , document_id)
             raise
         except Exception as exc:
             if file:

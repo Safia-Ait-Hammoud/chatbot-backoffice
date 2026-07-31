@@ -25,6 +25,9 @@ from app.repositories.docs.document_repository import DocumentRepository
 from app.repositories.docs.chunk_repository import ChunkRepository
 from app.repositories.docs.chunk_repository import ChunkRepository
 
+from app.repositories.faq.faq_file_repository import FAQFileRepository
+from app.services.faq.faq_file_service import FAQFileService
+
 
 @lru_cache
 def get_s3_client() -> S3Client:
@@ -137,3 +140,19 @@ def get_document_indexing_service(
     )
 
 
+def get_faq_file_repository(
+    mongo_client: MongoClient = Depends(get_mongo_client),
+) -> FAQFileRepository:
+    return FAQFileRepository(mongo_client)
+
+
+def get_faq_file_service(
+    s3_client: S3Client = Depends(get_s3_client),
+    indexing_service: FAQIndexingService = Depends(get_faq_indexing_service),
+    file_repository: FAQFileRepository = Depends(get_faq_file_repository),
+    project_repository: ProjectRepository = Depends(get_project_repository),
+    log_service: FAQLogService = Depends(get_faq_log_service),
+) -> FAQFileService:
+    return FAQFileService(
+        s3_client, indexing_service, file_repository, project_repository, log_service
+    )
