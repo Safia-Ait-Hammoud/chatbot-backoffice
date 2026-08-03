@@ -5,7 +5,13 @@ from app.repositories.docs.document_repository import DocumentRepository
 from app.repositories.docs.project_repository import ProjectRepository
 from app.schemas.docs.document_model import DocumentModel
 from app.schemas.docs.document_model import DocumentResponse
+from app.clients.qdrant_client import QdrantWrapper
+from app.services.docs.document_indexing_service import DocumentIndexingService
 
+
+
+    
+    
 
 class DocumentService:
 
@@ -14,10 +20,17 @@ class DocumentService:
         s3_client: S3Client,
         document_repository: DocumentRepository,
         project_repository: ProjectRepository,
+        qdrant_client: QdrantWrapper,
+        indexing_service: DocumentIndexingService,
+        
     ):
         self._s3 = s3_client
         self._documents = document_repository
         self._projects = project_repository
+        self._qdrant = qdrant_client
+        self._indexing_service = indexing_service
+
+
 
     async def add_file(self, file: UploadFile, project_id: str, filename: str) -> DocumentResponse:
         """Upload un nouveau fichier sur S3 et enregistre ses métadonnées en base."""
@@ -47,31 +60,46 @@ class DocumentService:
             s3_key=document.s3_key,
             url=document.url,
         )
-
     async def update_doc(
-        self, document_id: str, file: UploadFile = None, filename: str = None
+        self,
+        document_id: str,
+        file: UploadFile = None,
+        filename: str = None,
     ) -> DocumentResponse:
         """Met à jour un document existant : le nom, le fichier, ou les deux."""
+
         if not file and not filename:
-            raise HTTPException(status_code=400, detail="Aucune modification fournie (file ou filename requis)")
+            raise HTTPException(
+                status_code=400,
+                detail="Aucune modification fournie (file ou filename requis)",
+            )
 
         old_doc = await self._documents.get_by_id(document_id)
         if not old_doc:
-            raise HTTPException(status_code=404, detail="Document introuvable")
+            raise HTTPException(
+                status_code=404,
+                detail="Document introuvable",
+            )
 
         project = await self._projects.get_by_id(old_doc["project_id"])
         if not project:
-            raise HTTPException(status_code=404, detail="Projet introuvable")
+            raise HTTPException(
+                status_code=404,
+                detail="Projet introuvable",
+            )
 
         new_filename = old_doc["filename"]
         new_s3_key = old_doc["s3_key"]
         new_url = old_doc["url"]
 
+        # ---------------- Upload nouveau fichier 
+
         if file:
             result = await self._s3.upload_file(file, project["name"])
             new_s3_key = result["s3_key"]
             new_url = result["url"]
-            new_filename = filename if filename else result["filename"]
+            new_filename = filename or result["filename"]
+
         elif filename:
             new_filename = filename
 
@@ -82,25 +110,77 @@ class DocumentService:
             url=new_url,
         )
 
+        # ---------------- Mise à jour MongoDB 
+
         try:
-            updated = await self._documents.update(document_id, new_doc)
+            updated = await self._documents.update(
+                document_id,
+                new_doc,
+            )
+
             if not updated:
-                raise HTTPException(status_code=404, detail="Document introuvable ou non modifié")
+                raise HTTPException(
+                    status_code=404,
+                    detail="Document introuvable ou non modifié",
+                )
+
         except HTTPException:
             if file:
                 await self._s3.delete_file(new_s3_key)
             raise
+
         except Exception as exc:
             if file:
                 await self._s3.delete_file(new_s3_key)
-            raise HTTPException(status_code=500, detail=f"Erreur MongoDB : {exc}") from exc
+
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erreur MongoDB : {exc}",
+            ) from exc
+
+        # ---------------- Réindexation 
 
         if file:
+
             try:
-                await self._s3.delete_file(old_doc["s3_key"])
+                await self._indexing_service.reindex_document(document_id)
+
             except Exception as exc:
+
+                # rollback Mongo
+                await self._documents.update(
+                    document_id,
+                    DocumentModel(
+                        project_id=old_doc["project_id"],
+                        filename=old_doc["filename"],
+                        s3_key=old_doc["s3_key"],
+                        url=old_doc["url"],
+                    ),
+                )
+
+                # suppression du nouveau fichier
+                if new_s3_key != old_doc["s3_key"]:
+                    await self._s3.delete_file(new_s3_key)
+
                 raise HTTPException(
-                    status_code=500, detail=f"Erreur lors de la suppression du fichier S3 : {exc}"
+                    status_code=500,
+                    detail=f"Erreur lors de la réindexation : {exc}",
+                ) from exc
+
+            # ---------------- Suppression ancien fichier
+
+            try:
+
+                if new_s3_key != old_doc["s3_key"]:
+                    await self._s3.delete_file(
+                        old_doc["s3_key"]
+                    )
+
+            except Exception as exc:
+
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Erreur lors de la suppression de l'ancien fichier S3 : {exc}",
                 ) from exc
 
         return DocumentResponse(
@@ -110,7 +190,6 @@ class DocumentService:
             s3_key=new_doc.s3_key,
             url=new_doc.url,
         )
-
     async def list_documents(self, project_id: str) -> list[DocumentResponse]:
         docs = await self._documents.list_by_project(project_id)
         return [DocumentResponse.model_validate(doc) for doc in docs]

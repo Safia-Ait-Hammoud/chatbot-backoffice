@@ -16,6 +16,7 @@ async def upload_document(
     filename: Optional[str] = Form(None),
     service: DocumentService = Depends(get_document_service),
     service_indexing: DocumentIndexingService = Depends(get_document_indexing_service),
+    
 ):
     result = await service.add_file(file, project_id, filename)
     index = await service_indexing.index_document(result.id)
@@ -51,13 +52,7 @@ async def update_document(
 ):
     result = await service.update_doc(document_id, file, filename)
 
-    if file is not None:
-        await service_indexing.reindex_document(document_id)
-        message = "Document mis à jour et réindexé avec succès."
-    else:
-        message = "Document mis à jour. Réindexation non nécessaire."
-
-    return {"data": result, "message": message}
+    return result
 
 
 # @router.get("/download/{document_id}")

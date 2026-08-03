@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     
     qdrant_vector_size: int = 3072
 
+    bm25_model :str = "Qdrant/bm25"
+
+
 
 @lru_cache
 def get_settings() -> Settings:

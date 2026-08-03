@@ -27,8 +27,19 @@ class ChildPayload(pydantic.BaseModel):
     child_index: int
     content: str
 
+class SparseVectorModel(pydantic.BaseModel):
+    indices: list[int]
+    values: list[float]
+
+
+class ChildVectors(pydantic.BaseModel):
+    dense: list[float] # pour la recherche simentic 
+    bm25: SparseVectorModel # pour la recherche BM25
+
+
 
 class ChildModel(pydantic.BaseModel):
     child_id: str
-    vector: list[float]
+    vectors: ChildVectors
     payload: ChildPayload
+

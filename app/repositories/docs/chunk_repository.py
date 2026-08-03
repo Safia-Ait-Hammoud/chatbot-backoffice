@@ -6,6 +6,9 @@ from qdrant_client.models import (
     Filter,
     FieldCondition,
     MatchValue,
+    SparseVectorParams,
+    SparseVector,
+    Modifier,
 )
 
 from app.clients.mongo_client import MongoClient
@@ -70,7 +73,13 @@ class ChunkRepository:
         points = [
             PointStruct(
                 id=child.child_id,
-                vector=child.vector,
+                vector={
+                    "dense": child.vectors.dense,
+                    "bm25": SparseVector(
+                        indices=child.vectors.bm25.indices,
+                        values=child.vectors.bm25.values,
+                        ),
+                },
                 payload=child.payload.model_dump(),
             )
             for child in children

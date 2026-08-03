@@ -2,6 +2,7 @@ from typing import Any
 
 from qdrant_client import QdrantClient as _QdrantClient
 from qdrant_client.http import models as qmodels
+from qdrant_client.models import PointStruct, VectorParams, Distance ,SparseVectorParams,SparseVector,Modifier
 
 
 from app.core.config import Settings
@@ -84,15 +85,24 @@ class QdrantWrapper:
         """
         Crée la collection si elle n'existe pas, SANS préfixe.
         Le nom passé est utilisé tel quel (ex: nom du projet).
+
         """
         if not self._client.collection_exists(collection_name):
             self._client.create_collection(
                 collection_name=collection_name,
-                vectors_config=qmodels.VectorParams(
-                    size=self.VECTOR_SIZE,
-                    distance=qmodels.Distance.COSINE,
-                ),
+                vectors_config={            
+                    "dense": VectorParams(
+                        size=self.vector_size,
+                        distance=Distance.COSINE,
+                    ),
+                },
+                sparse_vectors_config={
+                    "bm25": SparseVectorParams(
+                        modifier=Modifier.IDF,
+                    ),
+                },
             )
+
 
     def upsert_points(self, collection_name: str, points: list[qmodels.PointStruct]) -> None:
         """
@@ -114,3 +124,22 @@ class QdrantWrapper:
             collection_name=collection_name,
             points_selector=filter_,
         )
+
+    def delete_document_points(self, collection_name: str, document_id: str ) -> None:
+        """
+        Supprime tous les points associés à un document.
+        """
+
+        self.delete_by_filter(
+            collection_name=collection_name,
+            filter_=qmodels.Filter(
+                must=[
+                    qmodels.FieldCondition(
+                        key="document_id",
+                        match=qmodels.MatchValue(value=document_id),
+                    )
+                ]
+            ),
+        )
+
+

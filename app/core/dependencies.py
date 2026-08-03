@@ -86,12 +86,6 @@ def get_chunk_repository(
 ) -> ChunkRepository:
     return ChunkRepository(mongo_client, qdrant_client, project_repository)
 
-def get_document_service(
-    s3_client: S3Client = Depends(get_s3_client),
-    document_repository: DocumentRepository = Depends(get_document_repository),
-    project_repository: ProjectRepository = Depends(get_project_repository),
-) -> DocumentService:
-    return DocumentService(s3_client, document_repository, project_repository)
 
 
 def get_extractor() -> Extractor:
@@ -120,7 +114,7 @@ def get_project_service(
 
 
 def get_document_indexing_service(
-    document_service: DocumentService = Depends(get_document_service),
+    document_repository: DocumentService = Depends(get_document_repository),
     s3_client: S3Client = Depends(get_s3_client),
     extractor: Extractor = Depends(get_extractor),
     text_cleaner: TextCleaner = Depends(get_text_cleaner),
@@ -128,7 +122,7 @@ def get_document_indexing_service(
     chunk_storage_service: ChunkStorageService = Depends(get_chunk_storage_service),
 ) -> DocumentIndexingService:
     return DocumentIndexingService(
-        document_service=document_service,
+        document_repository=document_repository,
         s3_client=s3_client,
         extractor=extractor,
         text_cleaner=text_cleaner,
@@ -136,4 +130,11 @@ def get_document_indexing_service(
         chunk_storage_service=chunk_storage_service,
     )
 
-
+def get_document_service(
+    s3_client: S3Client = Depends(get_s3_client),
+    document_repository: DocumentRepository = Depends(get_document_repository),
+    project_repository: ProjectRepository = Depends(get_project_repository),
+    qdrant_client: QdrantWrapper = Depends(get_qdrant_client),
+    indexing_service: DocumentIndexingService = Depends(get_document_indexing_service),
+) -> DocumentService:
+    return DocumentService(s3_client, document_repository, project_repository, qdrant_client, indexing_service)

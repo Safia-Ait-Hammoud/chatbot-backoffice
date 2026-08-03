@@ -14,3 +14,4 @@ pymupdf4llm
 langchain_text_splitters
 langchain-qdrant
 langchain_openai
+fastembed
